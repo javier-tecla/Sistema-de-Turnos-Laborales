@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Categoria;
 use App\Models\Turno;
 use Illuminate\Http\Request;
+use Nwidart\Modules\Routing\Controller;
 
 class TurnoController extends Controller
 {
@@ -12,7 +14,8 @@ class TurnoController extends Controller
      */
     public function index()
     {
-        //
+        $turnos = Turno::with('categoria')->get();
+        return view('turnos.index', compact('turnos'));
     }
 
     /**
@@ -20,7 +23,8 @@ class TurnoController extends Controller
      */
     public function create()
     {
-        //
+        $categorias = Categoria::all();
+        return view('turnos.create', compact('categorias'));
     }
 
     /**
@@ -28,7 +32,18 @@ class TurnoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'categoria_id' => 'required|exists:categorias,id',
+            'nombre' => 'required|string|max:150',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
+            'color_fondo' => 'nullable|string|max:7',
+            'color_texto' => 'nullable|string|max:7',
+        ]);
+
+        Turno::create($request->all());
+
+        return  redirect()->route('turnos.index')->with('success', 'Turno creado exitosamente.');
     }
 
     /**

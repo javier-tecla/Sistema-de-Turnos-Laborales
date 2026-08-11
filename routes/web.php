@@ -9,6 +9,7 @@ use App\Http\Controllers\Security\RolePermission;
 use App\Http\Controllers\Security\RoleController;
 use App\Http\Controllers\Security\PermissionController;
 use App\Http\Controllers\SucursalController;
+use App\Http\Controllers\TurnoController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Artisan;
 // Packages
@@ -90,6 +91,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::put('/empleados/{id}', [EmpleadoController::class, 'update'])->name('empleados.update');
     Route::delete('/empleados/{id}', [EmpleadoController::class, 'destroy'])->name('empleados.destroy');
 
+    // Turnos Module
+    Route::get('/turnos', [TurnoController::class, 'index'])->name('turnos.index');
+    Route::get('/turnos/create', [TurnoController::class, 'create'])->name('turnos.create');
+    Route::post('/turnos', [TurnoController::class, 'store'])->name('turnos.store');
+    Route::get('/turnos/{id}/edit', [TurnoController::class, 'edit'])->name('turnos.edit');
+    Route::put('/turnos/{id}', [TurnoController::class, 'update'])->name('turnos.update');
+    Route::delete('/turnos/{id}', [TurnoController::class, 'destroy'])->name('turnos.destroy');
+    
 });
 
 //App Details Page => 'Dashboard'], function() {
