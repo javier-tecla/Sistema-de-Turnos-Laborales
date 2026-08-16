@@ -21,7 +21,7 @@
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {{ activeRoute(route('role.permission.list')) }}" href="{{ route('role.permission.list') }}"
+        <a class="nav-link {{ activeRoute(route('role.permission.list')) }}" href="{{ route('role.permission.list') }}">
             <i class="icon">
             <svg width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd"
