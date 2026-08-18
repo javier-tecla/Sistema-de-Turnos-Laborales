@@ -2,6 +2,7 @@
 
 // Controllers
 
+use App\Http\Controllers\AusenciaController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\HomeController;
@@ -98,6 +99,15 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/turnos/{id}/edit', [TurnoController::class, 'edit'])->name('turnos.edit');
     Route::put('/turnos/{id}', [TurnoController::class, 'update'])->name('turnos.update');
     Route::delete('/turnos/{id}', [TurnoController::class, 'destroy'])->name('turnos.destroy');
+
+    // Ausencias Module
+    Route::get('/ausencias', [AusenciaController::class, 'index'])->name('ausencias.index');
+    Route::get('/ausencias/create', [AusenciaController::class, 'create'])->name('ausencias.create');
+    Route::post('/ausencias', [AusenciaController::class, 'store'])->name('ausencias.store');
+    Route::get('/ausencias/{id}/edit', [AusenciaController::class, 'edit'])->name('ausencias.edit');
+    Route::put('/ausencias/{id}', [AusenciaController::class, 'update'])->name('ausencias.update');
+    Route::put('/ausencias/{id}', [AusenciaController::class, 'destroy'])->name('ausencias.destroy');
+    
     
 });
 

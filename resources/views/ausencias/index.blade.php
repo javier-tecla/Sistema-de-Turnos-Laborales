@@ -5,58 +5,70 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between">
                         <div class="header-title">
-                            <h4 class="card-title">Listado de Empleados</h4>
+                            <h4 class="card-title">Listado de Ausencias</h4>
                         </div>
                         <div class="card-action">
-                            <a href="{{ route('empleados.create') }}" class="btn btn-sm btn-primary" role="button">
-                                Nuevo Empleado
+                            <a href="{{ route('ausencias.create') }}" class="btn btn-sm btn-primary" role="button">
+                                Nueva Ausencia
                             </a>
                         </div>
                     </div>
                     <div class="card-body px-0">
                         <div class="table-responsive">
-                            <table id="empleados-table" class="table table-striped text-center w-100">
+                            <table id="ausencias-table" class="table table-striped text-center w-100">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Nombre Completo</th>
-                                        <th>Documento</th>
-                                        <th>Teléfono</th>
+                                        <th>Empleado</th>
+                                        <th>Tipo</th>
+                                        <th>Desde</th>
+                                        <th>Hasta</th>
+                                        <th>Días</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($empleados as $empleado)
+                                    @foreach ($ausencias as $ausencia)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $empleado->nombre_completo }}</td>
-                                            <td>{{ $empleado->tipo_doc }}: {{ $empleado->numero_doc }}</td>
-                                            <td>{{ $empleado->telefono ?? '-' }}</td>
+                                            <td>{{ $ausencia->empleado->nombre_completo ?? '-' }}</td>
                                             <td>
-                                                @if ($empleado->estado === 'activo')
-                                                    <span class="badge bg-success">Activo</span>
+                                                @if ($ausencia->tipo === 'vacaciones')
+                                                    <span class="badge bg-info">Vacaciones</span>
+                                                @elseif ($ausencia->tipo === 'medica')
+                                                    <span class="badge bg-warning">Médica</span>
+                                                @elseif ($ausencia->tipo === 'permiso')
+                                                    <span class="badge bg-warning">Permiso</span>
                                                 @else
-                                                    <span class="badge bg-danger">Inactivo</span>
+                                                    <span class="badge bg-dark">Otro</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ $ausencia->fecha_inicio->format('d/m/Y') }}</td>
+                                            <td>{{ $ausencia->fecha_fin > format('d/m/Y') }}</td>
+                                            <td>{{ $ausencia->dias }}</td>
+                                            <td>
+                                                @if ($ausencia->estado === 'pendiente')
+                                                    <span class="badge bg-warning">Pendiente</span>
+                                                @elseif ($ausencia->estado === 'aprobado')
+                                                    <span class="badge bg-warning">Aprobado</span>
+                                                @else
+                                                    <span class="badge bg-warning">Rechazado</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center justify-content-center gap-2">
-                                                    <a class="btn btn-sm btn-info"
-                                                        href="{{ route('empleados.show', $empleado->id) }}">
-                                                        Ver
-                                                    </a>
                                                     <a class="btn btn-sm btn-success"
-                                                        href="{{ route('empleados.edit', $empleado->id) }}">
+                                                        href="{{ route('ausencias.edit', $ausencia->id) }}">
                                                         Editar
                                                     </a>
                                                     <button type="button" class="btn btn-sm btn-danger btn-delete"
-                                                        data-id="{{ $empleado->id }}"
-                                                        data-nombre="{{ $empleado->nombre_completo }}">
+                                                        data-id="{{ $ausencia->id }}"
+                                                        data-nombre="{{ $ausencia->nombre_completo }}">
                                                         Eliminar
                                                     </button>
-                                                    <form action="{{ route('empleados.destroy', $empleado->id) }}"
-                                                        id="empleado-delete-{{ $empleado->id }}" method="post">
+                                                    <form action="{{ route('ausencias.destroy', $ausencia->id) }}"
+                                                        id="ausencia-delete-{{ $ausencia->id }}" method="post">
                                                         @method('delete')
                                                         @csrf()
                                                     </form>
@@ -75,7 +87,7 @@
     @push('scripts')
         <script>
             $(document).ready(function() {
-                $('#empleados-table').DataTable({
+                $('#ausencias-table').DataTable({
                     language: {
                         processing: "Procesando...",
                         search: "Buscar:",
@@ -120,7 +132,7 @@
                         cancelButtonText: 'Cancelar'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            $('#empleado-delete-' + id).submit();
+                            $('#ausencia-delete-' + id).submit();
                         }
                     });
                 });

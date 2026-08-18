@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Categoria;
+use App\Models\Empleado;
 use App\Models\Sucursal;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -37,7 +38,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Super',
             'last_name' => 'Admin',
             'email' => 'Admin@admin.com',
-            'password' => bcrypt('12345678'),
+            'password' => bcrypt('123456789'),
             'phone_number' => '+12398190255',
             'user_type' => 'SUPER ADMINISTRADOR',
             'status' => 'active',
@@ -100,6 +101,9 @@ class DatabaseSeeder extends Seeder
         foreach ($categorias as $nombre) {
             Categoria::create(['nombre' => $nombre]);
         }
+
+        // Empleados
+        Empleado::factory(100)->create();
 
     }
 }

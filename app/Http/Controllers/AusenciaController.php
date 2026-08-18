@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ausencia;
+use App\Models\Empleado;
 use Illuminate\Http\Request;
+use Nwidart\Modules\Routing\Controller;
 
 class AusenciaController extends Controller
 {
@@ -12,7 +14,8 @@ class AusenciaController extends Controller
      */
     public function index()
     {
-        //
+        $ausencias = Ausencia::with('empleado')->get();
+        return view('ausencias.index', compact('ausencias'));
     }
 
     /**
@@ -20,7 +23,8 @@ class AusenciaController extends Controller
      */
     public function create()
     {
-        //
+        $empleados = Empleado::where('estado', 'activo')->get();
+        return view('ausencias.create', compact('empleados'));
     }
 
     /**
