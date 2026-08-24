@@ -106,7 +106,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/ausencias', [AusenciaController::class, 'store'])->name('ausencias.store');
     Route::get('/ausencias/{id}/edit', [AusenciaController::class, 'edit'])->name('ausencias.edit');
     Route::put('/ausencias/{id}', [AusenciaController::class, 'update'])->name('ausencias.update');
-    Route::put('/ausencias/{id}', [AusenciaController::class, 'destroy'])->name('ausencias.destroy');
+    Route::delete('/ausencias/{id}', [AusenciaController::class, 'destroy'])->name('ausencias.destroy');
     
     
 });

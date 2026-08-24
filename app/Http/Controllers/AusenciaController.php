@@ -15,6 +15,7 @@ class AusenciaController extends Controller
     public function index()
     {
         $ausencias = Ausencia::with('empleado')->get();
+
         return view('ausencias.index', compact('ausencias'));
     }
 
@@ -24,6 +25,7 @@ class AusenciaController extends Controller
     public function create()
     {
         $empleados = Empleado::where('estado', 'activo')->get();
+
         return view('ausencias.create', compact('empleados'));
     }
 
@@ -32,7 +34,22 @@ class AusenciaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'empleado_id' => 'required|exists:empleados,id',
+            'tipo' => 'required|in:vacaciones,medica,permiso.otro',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+        ]);
+
+        $ausencia = new Ausencia;
+        $ausencia->empleado_id = $request->empleado_id;
+        $ausencia->tipo = $request->tipo;
+        $ausencia->fecha_inicio = $request->fecha_inicio;
+        $ausencia->fecha_fin = $request->fecha_fin;
+        $ausencia->estado = 'pendiente';
+        $ausencia->save();
+
+        return redirect()->route('ausencias.index')->with('success', 'Ausencia registrada exitosamente.');
     }
 
     /**
@@ -46,24 +63,46 @@ class AusenciaController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Ausencia $ausencia)
+    public function edit($id)
     {
-        //
+        $ausencia = Ausencia::findOrFail($id);
+        $empleados = Empleado::where('estado', 'activo')->get();
+        return view('ausencias.edit', compact('ausencia', 'empleados'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Ausencia $ausencia)
+    public function update(Request $request, $id)
     {
-        //
-    }
+        $ausencia = Ausencia::findOrFail($id);
+
+        $request->validate([
+            'empleado_id' => 'required|exists:empleados,id',
+            'tipo' => 'required|in:vacaciones,medica,permiso,otro',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+            'estado' => 'required|in:pendiente,aprobado,rechazado',
+        ]);
+
+        $ausencia->empleado_id = $request->empleado_id;
+        $ausencia->tipo = $request->tipo;
+        $ausencia->fecha_inicio = $request->fecha_inicio;
+        $ausencia->fecha_fin = $request->fecha_fin;
+        $ausencia->estado = $request->estado;
+        $ausencia->save();
+
+        return redirect()->route('ausencias.index')->with('success', 'Ausencia actualizada exitosamente.');
+     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Ausencia $ausencia)
+    public function destroy($id)
     {
-        //
+        $ausencia = Ausencia::findOrFail($id);
+        $ausencia->delete();
+
+        return redirect()->route('ausencias.index')->with('success', 'Ausencia eliminada exitosamente.');
     }
 }

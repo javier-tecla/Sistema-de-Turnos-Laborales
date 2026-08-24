@@ -39,21 +39,21 @@
                                                 @elseif ($ausencia->tipo === 'medica')
                                                     <span class="badge bg-warning">Médica</span>
                                                 @elseif ($ausencia->tipo === 'permiso')
-                                                    <span class="badge bg-warning">Permiso</span>
+                                                    <span class="badge bg-secondary">Permiso</span>
                                                 @else
                                                     <span class="badge bg-dark">Otro</span>
                                                 @endif
                                             </td>
                                             <td>{{ $ausencia->fecha_inicio->format('d/m/Y') }}</td>
-                                            <td>{{ $ausencia->fecha_fin > format('d/m/Y') }}</td>
+                                            <td>{{ $ausencia->fecha_fin->format('d/m/Y') }}</td>
                                             <td>{{ $ausencia->dias }}</td>
                                             <td>
                                                 @if ($ausencia->estado === 'pendiente')
                                                     <span class="badge bg-warning">Pendiente</span>
                                                 @elseif ($ausencia->estado === 'aprobado')
-                                                    <span class="badge bg-warning">Aprobado</span>
+                                                    <span class="badge bg-success">Aprobado</span>
                                                 @else
-                                                    <span class="badge bg-warning">Rechazado</span>
+                                                    <span class="badge bg-danger">Rechazado</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -64,7 +64,7 @@
                                                     </a>
                                                     <button type="button" class="btn btn-sm btn-danger btn-delete"
                                                         data-id="{{ $ausencia->id }}"
-                                                        data-nombre="{{ $ausencia->nombre_completo }}">
+                                                        data-nombre="{{ $ausencia->empleado->nombre_completo }}">
                                                         Eliminar
                                                     </button>
                                                     <form action="{{ route('ausencias.destroy', $ausencia->id) }}"
@@ -122,8 +122,8 @@
                     var id = $(this).data('id');
                     var nombre = $(this).data('nombre');
                     Swal.fire({
-                        title: '¿Eliminar empleado?',
-                        text: '¿Está seguro de eliminar "' + nombre + '"?',
+                        title: '¿Eliminar ausencia?',
+                        text: '¿Está seguro de eliminar la ausencia de "' + nombre + '"?',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
