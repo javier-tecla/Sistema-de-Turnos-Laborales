@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Ausencia;
 use App\Models\Categoria;
 use App\Models\Empleado;
 use App\Models\Sucursal;
+use App\Models\Turno;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Database\Seeder;
@@ -102,8 +104,48 @@ class DatabaseSeeder extends Seeder
             Categoria::create(['nombre' => $nombre]);
         }
 
+        $categoriaTurnos = Categoria::all();
+
+        // Turnos
+        $turnos = [
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Turno Mañana', 'hora_inicio' => '06:00', 'hora_fin' => '14:00', 'color_fondo' => '#3498db', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Turno Tarde', 'hora_inicio' => '14:00', 'hora_fin' => '22:00', 'color_fondo' => '#e67e22', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Turno Noche', 'hora_inicio' => '22:00', 'hora_fin' => '06:00', 'color_fondo' => '#2c3e50', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Monitoreo Diurno', 'hora_inicio' => '07:00', 'hora_fin' => '19:00', 'color_fondo' => '#27ae60', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Monitoreo Nocturno', 'hora_inicio' => '19:00', 'hora_fin' => '07:00', 'color_fondo' => '#8e44ad', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Supervisión General', 'hora_inicio' => '08:00', 'hora_fin' => '18:00', 'color_fondo' => '#f39c12', 'color_texto' => '#000000'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Guardia 12 Horas', 'hora_inicio' => '06:00', 'hora_fin' => '18:00', 'color_fondo' => '#1abc9c', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Recepción Matutina', 'hora_inicio' => '07:00', 'hora_fin' => '15:00', 'color_fondo' => '#3498db', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Recepción Vespertina', 'hora_inicio' => '15:00', 'hora_fin' => '23:00', 'color_fondo' => '#e74c3c', 'color_texto' => '#ffffff'],
+            ['categoria_id' => $categoriaTurnos->where('nombre', 'Seguridad Física')->first()->id, 'nombre' => 'Ronda Motorizada', 'hora_inicio' => '18:00', 'hora_fin' => '06:00', 'color_fondo' => '#34495e', 'color_texto' => '#ffffff']
+        ];
+
+        foreach ($turnos as $turno) {
+            Turno::create($turno);
+        }
+
         // Empleados
         Empleado::factory(100)->create();
+
+        $empleados = Empleado::all();
+
+        // Ausencias
+        $ausencias = [
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'vacaciones', 'fecha_inicio' => '2026-01-06', 'fecha_fin' => '2026-01-17', 'estado' => 'aprobado'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'medica', 'fecha_inicio' => '2026-00-10', 'fecha_fin' => '2026-02-12', 'estado' => 'aprobado'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'permiso', 'fecha_inicio' => '2026-03-15', 'fecha_fin' => '2026-03-15', 'estado' => 'aprobado'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'medica', 'fecha_inicio' => '2026-04-01', 'fecha_fin' => '2026-04-05', 'estado' => 'rechazado'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'vacaciones', 'fecha_inicio' => '2026-05-20', 'fecha_fin' => '2026-05-31', 'estado' => 'pendiente'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'permiso', 'fecha_inicio' => '2026-06-08', 'fecha_fin' => '2026-06-08', 'estado' => 'pendiente'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'medica', 'fecha_inicio' => '2026-06-22', 'fecha_fin' => '2026-06-24', 'estado' => 'aprobado'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'otro', 'fecha_inicio' => '2026-07-01', 'fecha_fin' => '2026-07-03', 'estado' => 'aprobado'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'vacaciones', 'fecha_inicio' => '2026-08-10', 'fecha_fin' => '2026-08-21', 'estado' => 'pendiente'],
+            ['empleado_id' => $empleados->random()->id, 'tipo' => 'permiso', 'fecha_inicio' => '2026-09-05', 'fecha_fin' => '2026-09-06', 'estado' => 'aprobado']
+        ];
+
+        foreach ($ausencias as $ausencia) {
+            Ausencia::create($ausencia);
+        }
 
     }
 }

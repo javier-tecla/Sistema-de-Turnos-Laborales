@@ -133,4 +133,18 @@
             <span class="item-name">Ausencias</span>
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link {{ activeRoute(route('cronogramas.index')) }}" href="{{ route('cronogramas.index') }}">
+            <i class="icon">
+                <svg width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor"
+                        stroke-wisth="2" fill="none" />
+                    <path d="M3 10h18" stroke="currentColor" stroke-width="2"/>
+                    <path d="M8 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </i>
+            <span class="item-name">Cronogramas</span>
+        </a>
+    </li>
 </ul>
