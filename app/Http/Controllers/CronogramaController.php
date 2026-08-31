@@ -6,6 +6,7 @@ use App\Models\Cronograma;
 use App\Models\Empleado;
 use App\Models\Sucursal;
 use App\Models\Turno;
+use Carbon\Carbon;
 use Illuminate\Http\Request;   
 use Nwidart\Modules\Routing\Controller;
 
@@ -59,7 +60,44 @@ class CronogramaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'empleado_id' => 'required|exists:empleados,id',
+            'turno_id' => 'required|exists:turnos,id',
+            'sucursal_id' => 'required|exists:sucursals,id',
+            'fecha' => 'nullable|date|after_or_equal:fecha',
+        ]);
+
+        $fechaInicio = Carbon::parse($request->fecha);
+        $fechaFin = $request->fecha_fin ? Carbon::parse($request->fecha_fin) : $fechaInicio->copy();
+
+        $asignados = 0;
+        $errores = [];
+
+        for ($fecha = $fechaInicio->copy(); $fecha->lte($fechaFin); $fecha->addDay()) {
+            $fechaStr = $fecha->format('Y-m-d');
+            $existe = Cronograma::where('empleado_id', $request->empleado_id)
+                ->where('fecha', $fechaStr)->exists();
+
+            if ($existe) {
+                $errorres[] = $fecha->format('d/m/Y');
+                continue;
+            }
+
+            $cronograma = new Cronograma();
+            $cronograma->empleado_id = $request->empleado_id;
+            $cronograma->turno_id = $request->turno_id;
+            $cronograma->sucursal_id = $request->sucursal_id;
+            $cronograma->fecha = $fechaStr;
+            $cronograma->save();
+            $asignados++;
+        }
+
+        $mensaje = $asignados . ' día(s) asignado(s).';
+        if (count($errores) > 0) {
+            $mensaje .= ' Ya existía en: ' . implode(', ', $errores) . '.';
+        }
+
+        return response()->json(['success' => true, 'message' => $mensaje]);
     }
 
     /**
@@ -81,16 +119,39 @@ class CronogramaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Cronograma $cronograma)
+    public function update(Request $request, $id)
     {
-        //
+        $cronograma = Cronograma::findOrFail($id);
+
+        $request->validate([
+            'empleado_id' => 'required|exists:empleados,id',
+            'turno_id' => 'required|exists:turnos,id',
+            'sucursal_id' => 'required|exists:sucursals,id',
+            'fecha' => 'required|date',
+        ]);
+
+        $existe = Cronograma::where('empleado_id', $request->empleado_id)
+            ->where('fecha', $request->fecha)->where('id', '!=', $id)->exists();
+
+        if ($existe) {
+            return response()->json(['success' => false, 'message' => 'El empleado ya tiene turno ese día.'], 422);
+        }
+
+        $cronograma->empleado_id = $request->empleado_id;
+        $cronograma->turno_id = $request->turno_id;
+        $cronograma->sucursal_id = $request->sucursal_id;
+        $cronograma->fecha = $request->fecha;
+        $cronograma->save();
+
+        return response()->json(['success' => true, 'message' => 'Turno actualizado.']);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Cronograma $cronograma)
+    public function destroy(Request $request, $id)
     {
-        //
+        Cronograma::findOrFail($id)->delete();
+        return response()->json(['success' => true, 'message' => 'Asignación eliminada.']);
     }
 }
