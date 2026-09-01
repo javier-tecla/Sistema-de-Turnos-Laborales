@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ausencia;
 use App\Models\Cronograma;
 use App\Models\Empleado;
 use App\Models\Sucursal;
 use App\Models\Turno;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
-use Illuminate\Http\Request;   
+use Illuminate\Http\Request;
 use Nwidart\Modules\Routing\Controller;
-
 
 class CronogramaController extends Controller
 {
@@ -38,7 +38,7 @@ class CronogramaController extends Controller
                 'turno_id' => $c->turno_id,
                 'sucursal_id' => $c->sucursal_id,
                 'turno' => $c->sucursal->nombre ?? 'N/A',
-                'horario' => substr($c->turno->hora_inicio, 0, 5) . ' - ' . substr($c->turno->hora_fin, 0, 5),
+                'horario' => substr($c->turno->hora_inicio, 0, 5).' - '.substr($c->turno->hora_fin, 0, 5),
             ];
         });
 
@@ -65,7 +65,7 @@ class CronogramaController extends Controller
             'empleado_id' => 'required|exists:empleados,id',
             'turno_id' => 'required|exists:turnos,id',
             'sucursal_id' => 'required|exists:sucursals,id',
-            'fecha' => 'nullable|date|after_or_equal:fecha',
+            'fecha' => 'nullable|date|after_or_equal:today',
         ]);
 
         $fechaInicio = Carbon::parse($request->fecha);
@@ -73,6 +73,9 @@ class CronogramaController extends Controller
 
         $asignados = 0;
         $errores = [];
+        $ausencias = [];
+        $ausenciaDetalle = null;
+        $empleadoNombre = Empleado::find($request->empleado_id)->nombre_completo ?? 'Empleado';
 
         for ($fecha = $fechaInicio->copy(); $fecha->lte($fechaFin); $fecha->addDay()) {
             $fechaStr = $fecha->format('Y-m-d');
@@ -80,11 +83,25 @@ class CronogramaController extends Controller
                 ->where('fecha', $fechaStr)->exists();
 
             if ($existe) {
-                $errorres[] = $fecha->format('d/m/Y');
+                $errores[] = $fecha->format('d/m/Y');
+
                 continue;
             }
 
-            $cronograma = new Cronograma();
+            $ausenteInfo = Ausencia::where('empleado_id', $request->empleado_id)
+                ->where('estado', 'aprobado')
+                ->where('fecha_inicio', '<=', $fechaStr)
+                ->where('fecha_fin', '>=', $fechaStr)
+                ->first();
+
+            if ($ausenteInfo) {
+                $ausencias[] = $fecha->format('d/m/Y');
+                $ausenciaDetalle = $ausenteInfo;
+
+                continue;
+            }
+
+            $cronograma = new Cronograma;
             $cronograma->empleado_id = $request->empleado_id;
             $cronograma->turno_id = $request->turno_id;
             $cronograma->sucursal_id = $request->sucursal_id;
@@ -93,12 +110,24 @@ class CronogramaController extends Controller
             $asignados++;
         }
 
-        $mensaje = $asignados . ' día(s) asignado(s).';
-        if (count($errores) > 0) {
-            $mensaje .= ' Ya existía en: ' . implode(', ', $errores) . '.';
+        $mensaje = '';
+        if ($asignados > 0) {
+            $mensaje = $asignados . ' día(s) asignado(s). ';
         }
+        if (count($errores) > 0) {
+            $mensaje .= 'Ya tenía turno el: ' . implode(', ', $errores) . '. ';
+        }
+        if (count($ausencias) > 0 && $ausenciaDetalle) {
+            $tipoAusencia = ['vacaciones' => 'Vacaciones', 'medica' => 'Baja médica', 'permiso' => 'Permiso', 'otro' => 'Otro'];
+            $mensaje .= $empleadoNombre . ' está de ' . ($tipoAusencia[$ausenciaDetalle->tipo] ?? 'ausencia')
+                . ' del ' . $ausenciaDetalle->fecha_inicio->format('d/m/Y')
+                . ' al ' . $ausenciaDetalle->fecha_fin->format('d/m/Y') . '.';
+            }
 
-        return response()->json(['success' => true, 'message' => $mensaje]);
+            $success = $asignados > 0;
+
+            return response()->json(['success' => $success, 'message' => $mensaje ?: 'No se pudo asignar ningún día.']);
+
     }
 
     /**
@@ -138,6 +167,16 @@ class CronogramaController extends Controller
             return response()->json(['success' => false, 'message' => 'El empleado ya tiene turno ese día.'], 422);
         }
 
+        $ausente = Ausencia::where('empleado_id', $request->empleado_id)
+            ->where('estado', 'aprobado')
+            ->where('fecha_inicio', '<=', $request->fecha)
+            ->where('fecha_fin', '>=', $request->fecha)
+            ->exists();
+
+        if ($ausente) {
+            return response()->json(['success' => false, 'message' => 'El empleado está de ausencia ese día.'], 422);
+        }
+
         $cronograma->empleado_id = $request->empleado_id;
         $cronograma->turno_id = $request->turno_id;
         $cronograma->sucursal_id = $request->sucursal_id;
@@ -153,6 +192,7 @@ class CronogramaController extends Controller
     public function destroy(Request $request, $id)
     {
         Cronograma::findOrFail($id)->delete();
+
         return response()->json(['success' => true, 'message' => 'Asignación eliminada.']);
     }
 
@@ -163,9 +203,19 @@ class CronogramaController extends Controller
 
         $existe = Cronograma::where('empleado_id', $cronograma->empleado_id)
             ->where('fecha', $request->fecha)->where('id', '!=', $id)->exists();
-        
+
         if ($existe) {
-            return response()->json(['error' => 'El empleado ya tiene un turno ese día.'],422);
+            return response()->json(['error' => 'El empleado ya tiene un turno ese día.'], 422);
+        }
+
+        $ausente = Ausencia::where('empleado_id', $cronograma->empleado_id)
+            ->where('estado', 'aprobado')
+            ->where('fecha_inicio', '<=', $request->fecha)
+            ->where('fecha_fin', '>=', $request->fecha)
+            ->exists();
+
+        if ($ausente) {
+            return response()->json(['error' => 'El empleado está de ausencia ese día.'], 422);
         }
 
         $cronograma->fecha = $request->fecha;
@@ -181,7 +231,13 @@ class CronogramaController extends Controller
         if ($request->filled('sucursal_id')) {
             $query->where('sucursal_id', $request->sucursal_id);
         }
-
+        if ($request->filled('mes')) {
+            $query->whereMonth('fecha', $request->mes);
+        }
+        if ($request->filled('anio')) {
+            $query->whereYear('fecha', $request->anio);
+        }
+        
         $cronogramas = $query->orderBy('fecha')->get();
         $sucursal = $request->filled('sucursal_id')
             ? Sucursal::find($request->sucursal_id)
@@ -199,6 +255,6 @@ class CronogramaController extends Controller
             ->setPaper('letter', 'portrait')
             ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
 
-        return $pdf->stream('cronograma-' . ($sucursal ? \Str::slug($sucursal->nombre) : 'general') . '.pdf'); 
+        return $pdf->stream('cronograma-'.($sucursal ? \Str::slug($sucursal->nombre) : 'general').'.pdf');
     }
 }

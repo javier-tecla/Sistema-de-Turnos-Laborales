@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Ausencia;
 use App\Models\Categoria;
+use App\Models\Cronograma;
 use App\Models\Empleado;
 use App\Models\Sucursal;
 use App\Models\Turno;
@@ -146,6 +147,9 @@ class DatabaseSeeder extends Seeder
         foreach ($ausencias as $ausencia) {
             Ausencia::create($ausencia);
         }
+
+        // Cronogramas
+        Cronograma::factory(3000)->create();
 
     }
 }
