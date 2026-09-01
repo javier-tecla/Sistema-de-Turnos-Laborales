@@ -6,6 +6,7 @@ use App\Models\Cronograma;
 use App\Models\Empleado;
 use App\Models\Sucursal;
 use App\Models\Turno;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;   
 use Nwidart\Modules\Routing\Controller;
@@ -153,5 +154,51 @@ class CronogramaController extends Controller
     {
         Cronograma::findOrFail($id)->delete();
         return response()->json(['success' => true, 'message' => 'Asignación eliminada.']);
+    }
+
+    public function mover(Request $request, $id)
+    {
+        $cronograma = Cronograma::findOrFail($id);
+        $request->validate(['fecha' => 'required|date']);
+
+        $existe = Cronograma::where('empleado_id', $cronograma->empleado_id)
+            ->where('fecha', $request->fecha)->where('id', '!=', $id)->exists();
+        
+        if ($existe) {
+            return response()->json(['error' => 'El empleado ya tiene un turno ese día.'],422);
+        }
+
+        $cronograma->fecha = $request->fecha;
+        $cronograma->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function reporte(Request $request)
+    {
+        $query = Cronograma::with(['empleado', 'turno', 'sucursal']);
+
+        if ($request->filled('sucursal_id')) {
+            $query->where('sucursal_id', $request->sucursal_id);
+        }
+
+        $cronogramas = $query->orderBy('fecha')->get();
+        $sucursal = $request->filled('sucursal_id')
+            ? Sucursal::find($request->sucursal_id)
+            : null;
+
+        $porMes = $cronogramas->groupBy(function ($c) {
+            return $c->fecha->format('Y-m');
+        })->sortKeys();
+
+        $porTurno = $cronogramas->groupBy('turno_id');
+
+        $mesesNombres = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+        $pdf = Pdf::loadView('cronogramas.reporte', compact('cronogramas', 'sucursal', 'porMes', 'mesesNombres'))
+            ->setPaper('letter', 'portrait')
+            ->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+
+        return $pdf->stream('cronograma-' . ($sucursal ? \Str::slug($sucursal->nombre) : 'general') . '.pdf'); 
     }
 }

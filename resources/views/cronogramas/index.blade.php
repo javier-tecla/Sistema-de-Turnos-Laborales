@@ -396,7 +396,7 @@
                                     }).then(r => r.json()).then(d => {
                                         if (d.success) {
                                             Swal.fire('OK', 'Actualizado.', 'success').then(
-                                            () => location.reload());
+                                                () => location.reload());
                                         } else {
                                             Swal.fire('Error', d.message, 'error');
                                         }
@@ -412,27 +412,28 @@
                                         cancelButtonText: 'No'
                                     }).then((del) => {
                                         if (del
-                                            .isConfirmed) { // Corregido: del.idConfirmed cambiado a del.isConfirmed
+                                            .isConfirmed
+                                        ) { // Corregido: del.idConfirmed cambiado a del.isConfirmed
                                             fetch('{{ url('/cronogramas') }}/' + event
-                                            .id, { // Corregido: Agregada la coma falta antes de abrir las opciones del fetch
-                                                method: 'DELETE',
-                                                headers: {
-                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                    'Accept': 'application/json'
-                                                }
-                                            }).then(r => r.json()).then(
-                                            d => { // Corregido: Se agregó la captura de respuesta json y se reacomodaron las llaves de cierre
-                                                if (d.success || !d.error) {
-                                                    Swal.fire('OK', 'Eliminado.',
-                                                        'success').then(() =>
-                                                        location.reload()
+                                                .id, { // Corregido: Agregada la coma falta antes de abrir las opciones del fetch
+                                                    method: 'DELETE',
+                                                    headers: {
+                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                        'Accept': 'application/json'
+                                                    }
+                                                }).then(r => r.json()).then(
+                                                d => { // Corregido: Se agregó la captura de respuesta json y se reacomodaron las llaves de cierre
+                                                    if (d.success || !d.error) {
+                                                        Swal.fire('OK', 'Eliminado.',
+                                                            'success').then(() =>
+                                                            location.reload()
                                                         ); // Corregido: Agregada la coma faltante en Swal.fire
-                                                } else {
-                                                    Swal.fire('Error', d.error ||
-                                                        'No se pudo eliminar.',
-                                                        'error');
-                                                }
-                                            }).catch(() => {
+                                                    } else {
+                                                        Swal.fire('Error', d.error ||
+                                                            'No se pudo eliminar.',
+                                                            'error');
+                                                    }
+                                                }).catch(() => {
                                                 Swal.fire('Error',
                                                     'Error de red al intentar eliminar.',
                                                     'error');
@@ -516,24 +517,38 @@
                                             'Accept': 'application/json'
                                         },
                                         body: JSON.stringify(result
-                                            .value) // Corregido JSON.stingify -> JSON.stringify
+                                            .value
+                                        ) // Corregido JSON.stingify -> JSON.stringify
                                     }).then(r => r.json()).then(
-                                    d => { // Corregida la coma por un punto antes del .then
-                                        if (d.success) {
-                                            Swal.fire('OK', d.message ||
-                                                'Asignado correctamente.', 'success').then(
-                                            () => location.reload());
-                                        } else {
-                                            Swal.fire('Error', d.message ||
-                                                'No se pudo asignar.', 'error');
-                                        }
-                                    }).catch(() => {
+                                        d => { // Corregida la coma por un punto antes del .then
+                                            if (d.success) {
+                                                Swal.fire('OK', d.message ||
+                                                    'Asignado correctamente.', 'success').then(
+                                                    () => location.reload());
+                                            } else {
+                                                Swal.fire('Error', d.message ||
+                                                    'No se pudo asignar.', 'error');
+                                            }
+                                        }).catch(() => {
                                         Swal.fire('Error',
                                             'Error de red al procesar la solicitud.',
                                             'error');
                                     });
                                 }
                             });
+                        }
+                    });
+
+                    // Optimización del reajuste para el menú de Hope UI
+                    $('[data-toggle="sidebar"]').on('click', function() {
+                        if (calendar) {
+                            // Primer ajuste inmediato mientras se mueve el menú
+                            calendar.updateSize();
+
+                            // Segundo ajuste al finalizar la animación de Hope UI
+                            setTimeout(function() {
+                                calendar.updateSize();
+                            }, 400);
                         }
                     });
                     calendar.render();
